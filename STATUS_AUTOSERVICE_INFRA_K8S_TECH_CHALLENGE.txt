@@ -1,0 +1,159 @@
+STATUS DO REPOSITÓRIO: autoservice-infra-k8s
+Tech Challenge - Aderência ao Escopo
+Data de referência: 2026-08-21
+
+1) OBJETIVO
+Registrar o status atual deste repositório, com o que já foi implementado, justificativas técnicas e pendências para o fechamento do escopo do Tech Challenge.
+
+
+2) RESUMO EXECUTIVO
+Situação atual: MAJORITARIAMENTE ADERENTE no recorte de infraestrutura K8s, com pendências operacionais e de integração entre repositórios.
+
+Este repositório já entrega:
+- Infraestrutura Kubernetes com Terraform (VPC, EKS, gateway e observabilidade);
+- CI/CD para homolog e prod;
+- Hardening base de segurança;
+- Dashboard e alarmes técnicos + de negócio (estrutura pronta);
+- Documentação arquitetural (sequência, RFCs e ADRs).
+
+Pendências principais:
+- Preencher valores reais de ambiente (certificado ACM, links de deploy e Swagger/Postman);
+- Instrumentar aplicação/Lambda para publicação de métricas e correlação de logs;
+- Evidenciar branch protection/PR obrigatório e execuções reais de pipeline.
+
+
+3) O QUE JÁ FOI FEITO (E POR QUE)
+
+3.1 Estrutura e governança de IaC
+- Feito:
+  - Módulos Terraform: `network`, `eks`, `gateway`, `observability`.
+  - Ambientes segregados: `terraform/environments/homolog` e `terraform/environments/prod`.
+- Por quê:
+  - Reuso, clareza de responsabilidade e evolução por domínio.
+  - Redução de risco de drift entre ambientes.
+
+3.2 Rede e cluster Kubernetes
+- Feito:
+  - VPC com subnets públicas/privadas e NAT.
+  - EKS com managed node groups e parâmetros de escala por ambiente.
+  - Add-ons base do cluster.
+- Por quê:
+  - Atender escalabilidade e alta disponibilidade com menor overhead operacional.
+
+3.3 API Gateway/Ingress
+- Feito:
+  - Traefik via Helm com exposição por Load Balancer.
+  - IngressClass explícita para integração com a aplicação.
+  - Metrics Server para HPA.
+- Por quê:
+  - Atender requisito de gateway para roteamento e entrada das APIs.
+
+3.4 Hardening de segurança (evolução aplicada)
+- Feito:
+  - `cluster_endpoint_public_access = false` por padrão (homolog/prod).
+  - Validação para bloquear `0.0.0.0/0` quando endpoint público for ativado.
+  - `is_default_ingress_class = false` por padrão.
+  - Suporte a HTTPS no gateway via ACM (`gateway_acm_certificate_arn`) com redirect HTTP -> HTTPS.
+- Por quê:
+  - Reduzir superfície de exposição e alinhar com boas práticas de segurança de borda/acesso.
+
+3.5 Observabilidade (evolução aplicada)
+- Feito:
+  - Logs de control plane EKS e alarmes técnicos (CPU/memória/pods).
+  - Alarmes de aplicação/negócio: latência, healthcheck success rate, falhas de processamento.
+  - Dashboard com:
+    - volume diário de ordens,
+    - tempo médio por status (Diagnostico, Execucao, Finalizacao),
+    - erros de integração,
+    - latência e uptime.
+- Por quê:
+  - Cobrir requisitos do desafio com visibilidade técnica e de negócio.
+
+3.6 CI/CD
+- Feito:
+  - Workflow de validação em PR.
+  - Workflow de deploy automático em push para `homolog` e `prod`.
+- Por quê:
+  - Garantir qualidade mínima e automação de entrega em ambiente.
+
+3.7 Documentação arquitetural
+- Feito:
+  - Diagrama de sequência: `docs/SEQUENCE_AUTH_AND_ORDER.md`
+  - RFCs:
+    - `docs/RFC-001-cloud-and-iac.md`
+    - `docs/RFC-002-auth-integration-contract.md`
+  - ADRs:
+    - `docs/ADR-001-traefik-gateway.md`
+    - `docs/ADR-002-eks-managed-node-groups.md`
+    - `docs/ADR-003-observability-strategy.md`
+- Por quê:
+  - Formalizar decisões técnicas e arquiteturais exigidas no escopo.
+
+
+4) ADERÊNCIA AO ESCOPO (NESTE REPOSITÓRIO)
+
+4.1 Atendido
+- API Gateway (Traefik) para roteamento.
+- Cluster Kubernetes com escalabilidade.
+- Terraform para provisionamento.
+- Repositório dedicado de infra K8s com CI/CD.
+- Documentação arquitetural deste repositório (sequência/RFC/ADR).
+
+4.2 Parcialmente atendido (depende de operação/integração)
+- Segurança:
+  - Estrutura implementada; falta preencher ACM real por ambiente e validar políticas finais de exposição.
+- Observabilidade:
+  - Estrutura de dashboard/alarmes pronta; falta publicação real de métricas e correlação de logs pela aplicação/Lambda.
+
+4.3 Não atendido neste repositório (ou externo ao código)
+- Links finais reais no README:
+  - Deploy ativo por ambiente.
+  - Swagger/Postman da API.
+- Evidência formal de branch protection e PR obrigatório (configuração no GitHub).
+- Evidência de execução real das pipelines homolog/prod para compor entrega final.
+
+
+5) PENDÊNCIAS PRIORITÁRIAS
+
+Prioridade ALTA
+1. Preencher `gateway_acm_certificate_arn` por ambiente e validar HTTPS ponta a ponta.
+2. Instrumentar `autoservice` e `autoservice-lambda-auth` para publicar métricas no namespace `Autoservice` e logs com correlação.
+3. Validar alarmes e dashboard com dados reais de carga/fluxo de ordens.
+
+Prioridade MÉDIA
+4. Atualizar README com links reais de deploy e Swagger/Postman.
+5. Capturar evidências de branch protection/PR obrigatório e runs de CI/CD para anexar na entrega.
+6. Consolidar pacote final com os 4 repositórios (documentação e evidências cruzadas).
+
+
+6) INTERDEPENDÊNCIAS COM OUTROS REPOSITÓRIOS
+
+autoservice-lambda-auth
+- Implementa validação de CPF e emissão JWT.
+- Deve publicar métricas/logs de autenticação para observabilidade unificada.
+
+autoservice-infra-db
+- Entrega banco gerenciado e regras de acesso.
+- Deve consumir `node_security_group_id` deste repositório para liberar tráfego EKS -> DB.
+
+autoservice (aplicação principal)
+- Implementa APIs protegidas e lógica de ordens.
+- Deve publicar métricas de negócio e logs correlacionados.
+- Deve fornecer Swagger/Postman final.
+
+
+7) CHECKLIST FINAL
+- [x] Infra K8s com Terraform (network, EKS, gateway, observability).
+- [x] CI/CD com validação e deploy em homolog/prod.
+- [x] Hardening base de segurança (EKS endpoint, validação CIDR, ingress class, TLS configurável).
+- [x] Dashboard e alarmes base para requisitos técnicos e de negócio.
+- [x] Diagrama de sequência, RFCs e ADRs no repositório.
+- [ ] Certificados ACM reais configurados por ambiente.
+- [ ] Métricas e logs reais publicados por app/Lambda.
+- [ ] Links reais de deploy e Swagger/Postman no README.
+- [ ] Evidências de branch protection/PR obrigatório.
+- [ ] Evidências de execução das pipelines homolog/prod.
+
+
+8) CONCLUSÃO
+O `autoservice-infra-k8s` está tecnicamente bem avançado e cobre o núcleo do escopo de infraestrutura. O fechamento completo do Tech Challenge depende agora de parametrização real de ambiente, integração observável com aplicação/Lambda e consolidação das evidências finais de governança e operação.

@@ -1,0 +1,5 @@
+bucket         = "autoservice-terraform-state"
+key            = "autoservice-infra-k8s/homolog.tfstate"
+region         = "us-east-1"
+dynamodb_table  = "autoservice-terraform-locks"
+encrypt        = true

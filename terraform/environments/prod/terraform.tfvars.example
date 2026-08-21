@@ -1,0 +1,30 @@
+project_name = "autoservice"
+environment  = "prod"
+aws_region   = "us-east-1"
+
+vpc_cidr = "10.40.0.0/16"
+availability_zones = ["us-east-1a", "us-east-1b"]
+public_subnet_cidrs = ["10.40.0.0/24", "10.40.1.0/24"]
+private_subnet_cidrs = ["10.40.10.0/24", "10.40.11.0/24"]
+
+cluster_version = "1.30"
+cluster_endpoint_public_access = false
+cluster_endpoint_public_access_cidrs = []
+
+node_instance_types = ["t3.medium"]
+node_min_size = 3
+node_max_size = 6
+node_desired_size = 3
+
+cloudwatch_log_retention_days = 90
+
+gateway_ingress_class_name = "traefik"
+gateway_is_default_ingress_class = false
+gateway_load_balancer_scheme = "internet-facing"
+gateway_acm_certificate_arn = null
+gateway_force_https_redirect = true
+gateway_service_annotations = {}
+
+tags = {
+  Owner = "soat"
+}
