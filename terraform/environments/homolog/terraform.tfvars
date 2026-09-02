@@ -1,0 +1,12 @@
+project_name                = "autoservice"
+environment                 = "homolog"
+aws_region                  = "us-east-1"
+cluster_version             = "1.29"
+vpc_cidr                    = "10.10.0.0/16"
+azs                         = ["us-east-1a", "us-east-1b"]
+public_subnet_cidrs         = ["10.10.1.0/24", "10.10.2.0/24"]
+private_subnet_cidrs        = ["10.10.11.0/24", "10.10.12.0/24"]
+node_group_instance_type    = "t3.medium"
+node_group_desired_capacity = 2
+node_group_min_size         = 1
+node_group_max_size         = 4
