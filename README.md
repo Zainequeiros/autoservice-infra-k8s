@@ -122,13 +122,13 @@ terraform init -backend-config="../../backend.hcl"
 3. Verifique o plano:
 
 ```bash
-terraform plan -var-file=terraform.tfvars
+terraform plan -var-file=terraform.tfvars.example.example
 ```
 
 4. Aplique a infraestrutura:
 
 ```bash
-terraform apply -var-file=terraform.tfvars
+terraform apply -var-file=terraform.tfvars.example.example
 ```
 
 Para produção, repita os passos em `terraform/environments/prod`.
