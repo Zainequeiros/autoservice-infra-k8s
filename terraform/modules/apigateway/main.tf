@@ -35,7 +35,7 @@ resource "aws_lb_target_group" "cluster" {
   vpc_id      = var.vpc_id
 
   health_check {
-    port                = 80
+    port                = "80"
     path                = "/healthz"
     matcher             = "200-399"
     interval            = 30
@@ -84,10 +84,11 @@ resource "aws_apigatewayv2_api" "main" {
   }
 }
 
+# AQUI ESTÁ O AJUSTE: integration_uri aponta para aws_lb_listener.http.arn
 resource "aws_apigatewayv2_integration" "cluster" {
   api_id                 = aws_apigatewayv2_api.main.id
   integration_type       = "HTTP_PROXY"
-  integration_uri        = "http://${aws_lb.ingress.dns_name}"
+  integration_uri        = aws_lb_listener.http.arn
   integration_method     = "ANY"
   connection_type        = "VPC_LINK"
   connection_id          = aws_apigatewayv2_vpc_link.cluster.id
