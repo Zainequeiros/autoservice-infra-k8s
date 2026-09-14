@@ -10,3 +10,12 @@ node_group_instance_type    = "t3.medium"
 node_group_desired_capacity = 2
 node_group_min_size         = 1
 node_group_max_size         = 4
+
+# Datadog Agent no EKS (OBS-04)
+# A flag enable_datadog_agent está em terraform.auto.tfvars (versionado, usado pelo CI).
+# Copie este arquivo para terraform.tfvars apenas se precisar de overrides locais (gitignored).
+#
+# dd_api_key — NÃO commite a key real. Use uma destas opções:
+#   - variável de ambiente: TF_VAR_dd_api_key
+#   - secret GitHub Actions: DD_API_KEY (workflow terraform.yml)
+# dd_api_key = "sua-api-key-datadog"

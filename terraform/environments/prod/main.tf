@@ -50,3 +50,15 @@ module "apigateway" {
   ingress_security_group_id         = module.networking.alb_security_group_id
   node_group_autoscaling_group_name = module.eks.node_group_autoscaling_group_name
 }
+
+module "datadog" {
+  count  = var.enable_datadog_agent ? 1 : 0
+  source = "../../modules/datadog"
+
+  project_name = var.project_name
+  environment  = var.environment
+  dd_api_key   = var.dd_api_key
+  dd_site      = var.dd_site
+
+  depends_on = [module.eks]
+}
