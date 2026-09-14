@@ -2,9 +2,12 @@
 
 ## autoservice-infra-k8s
 
-| Secret | Obrigatório | Uso |
-|--------|-------------|-----|
+| Secret / config | Obrigatório | Uso |
+|-----------------|-------------|-----|
 | `DD_API_KEY` | Sim (quando `enable_datadog_agent = true`) | `TF_VAR_dd_api_key` no workflow Terraform |
+| `terraform.auto.tfvars` | Sim (versionado) | Flag `enable_datadog_agent` por ambiente — homolog `true`, prod `false` |
+
+O CI carrega `terraform/environments/{homolog,prod}/terraform.auto.tfvars` automaticamente. Após merge em `develop`, homolog recebe o Agent sem `terraform apply` manual.
 
 ```powershell
 gh secret set DD_API_KEY -R Zainequeiros/autoservice-infra-k8s
