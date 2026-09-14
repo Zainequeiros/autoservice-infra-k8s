@@ -17,3 +17,7 @@ output "alb_security_group_id" {
 output "eks_nodes_security_group_id" {
   value = aws_security_group.eks_nodes.id
 }
+
+output "lambda_auth_security_group_id" {
+  value = aws_security_group.lambda_auth.id
+}

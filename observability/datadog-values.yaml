@@ -1,0 +1,35 @@
+datadog:
+  apiKeyExistingSecret: datadog-secret
+  site: datadoghq.com
+  clusterName: autoservice-homolog
+  clusterAgent:
+    enabled: true
+    replicas: 1
+  agents:
+    image:
+      tag: 7
+  logs:
+    enabled: true
+    containerCollectAll: true
+  apm:
+    portEnabled: true
+    socketEnabled: true
+  processAgent:
+    enabled: true
+    processCollection: false
+  kubeStateMetricsEnabled: true
+  kubeStateMetricsCore:
+    enabled: true
+  orchestratorExplorer:
+    enabled: true
+  networkMonitoring:
+    enabled: false
+  confd:
+    java.yaml: |-
+      init_config:
+      instances:
+        - host: %%host%%
+          port: 8088
+  tags:
+    - env:homolog
+    - project:autoservice

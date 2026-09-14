@@ -71,11 +71,12 @@ README.md
 A infraestrutura deste repositório foi desenhada para suportar o desafio operacional da oficina:
 
 - API Gateway + ALB + Ingress para roteamento seguro e público da aplicação principal.
+- Rota `POST /auth/cpf` no API Gateway HTTP apontando para a Lambda `cpf-auth` (variáveis `auth_lambda_*`).
 - Cluster EKS com escalabilidade horizontal e clusterização para múltiplas unidades.
+- Security group `lambda_auth` + outputs de subnets/SG para liberar no RDS.
 - Rede privada, subnets, NAT, IAM e políticas para ambiente seguro e resiliente.
-- Observabilidade centralizada com métricas de CPU, memória, latência, healthchecks e logs estruturados.
+- Observabilidade: Helm Datadog em [`observability/`](observability/).
 - Deploy automatizado em ambientes homolog e prod com Terraform, PR obrigatório e CI/CD em GitHub Actions.
-- Integração com Datadog para dashboards de uptime, latência, falhas e volume de ordens.
 
 ## Requisitos para execução
 
@@ -112,26 +113,27 @@ A configuração do backend também pode ser reutilizada pelo arquivo `terraform
 aws configure
 ```
 
-2. Inicialize o ambiente desejado:
+2. Inicialize o ambiente (use `backend.hcl` local, fora do versionamento):
 
 ```bash
 cd terraform/environments/homolog
-terraform init -backend-config="../../backend.hcl"
+cp terraform.tfvars.example terraform.tfvars
+terraform init -backend-config=backend.hcl
 ```
 
 3. Verifique o plano:
 
 ```bash
-terraform plan -var-file=terraform.tfvars.example.example
+terraform plan -var-file=terraform.tfvars
 ```
 
 4. Aplique a infraestrutura:
 
 ```bash
-terraform apply -var-file=terraform.tfvars.example.example
+terraform apply -var-file=terraform.tfvars
 ```
 
-Para produção, repita os passos em `terraform/environments/prod`.
+Para produção, repita em `terraform/environments/prod`.
 
 ## Pipeline CI/CD
 
@@ -145,14 +147,8 @@ O processo usa autenticação AWS com OIDC e variáveis do repositório (`AWS_RE
 
 ## Observações
 
-- O cluster é provisionado em sub-redes privadas, com acesso público apenas via API Gateway/ALB;
-- a arquitetura foi desenhada para suportar alta disponibilidade e escalabilidade;
-- o backend remoto garante consistência e lock do estado do Terraform;
-- a estrutura foi feita para facilitar a expansão do projeto com ingress controller, observabilidade e políticas de segurança.
-
-## Links de deploy ativos
-
-- Endpoint público da API: configure via ALB/Ingress em `https://api.autoservice.example.com`
-- Ambiente de homologação: `https://homolog-api.autoservice.example.com`
-- Ambiente de produção: `https://api.autoservice.example.com`
-- Observabilidade: dashboards Datadog com latência, CPU, memória, healthchecks e ordens por status.
+- O cluster é provisionado em sub-redes privadas, com acesso público via API Gateway/ALB.
+- Após o apply, é necessário um Ingress Controller no cluster e o ASG do node group associado ao Target Group do ALB.
+- Outputs úteis: `api_gateway_url`, `load_balancer_dns_name`, `lambda_auth_security_group_id`, `private_subnet_ids`, `eks_nodes_security_group_id`.
+- Observabilidade: [`observability/`](observability/).
+- A rota `POST /auth/cpf` é habilitada quando `auth_lambda_function_name` e `auth_lambda_invoke_arn` estão preenchidos.

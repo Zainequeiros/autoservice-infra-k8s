@@ -95,6 +95,34 @@ resource "aws_apigatewayv2_integration" "cluster" {
   payload_format_version = "1.0"
 }
 
+resource "aws_apigatewayv2_integration" "auth_lambda" {
+  count = var.auth_lambda_function_name != "" && var.auth_lambda_invoke_arn != "" ? 1 : 0
+
+  api_id                 = aws_apigatewayv2_api.main.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = var.auth_lambda_invoke_arn
+  integration_method     = "POST"
+  payload_format_version = "2.0"
+}
+
+resource "aws_apigatewayv2_route" "auth_cpf" {
+  count = var.auth_lambda_function_name != "" && var.auth_lambda_invoke_arn != "" ? 1 : 0
+
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "POST /auth/cpf"
+  target    = "integrations/${aws_apigatewayv2_integration.auth_lambda[0].id}"
+}
+
+resource "aws_lambda_permission" "auth_cpf_apigw" {
+  count = var.auth_lambda_function_name != "" && var.auth_lambda_invoke_arn != "" ? 1 : 0
+
+  statement_id  = "AllowAPIGatewayInvokeCpfAuth"
+  action        = "lambda:InvokeFunction"
+  function_name = var.auth_lambda_function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.main.execution_arn}/*/*/auth/cpf"
+}
+
 resource "aws_apigatewayv2_route" "default" {
   api_id    = aws_apigatewayv2_api.main.id
   route_key = "$default"

@@ -10,3 +10,7 @@ override.tf.json
 .terraform.lock.hcl
 backend.hcl
 *.tfvars
+*.tfplan
+tfplan
+crash.*.log
+spec/

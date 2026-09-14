@@ -32,3 +32,15 @@ variable "node_group_autoscaling_group_name" {
   description = "Auto Scaling Group attached to the ALB target group."
   type        = string
 }
+
+variable "auth_lambda_function_name" {
+  description = "Nome da Lambda de autenticação por CPF (ex.: cpf-auth). Vazio desabilita a rota /auth/cpf."
+  type        = string
+  default     = ""
+}
+
+variable "auth_lambda_invoke_arn" {
+  description = "Invoke ARN da Lambda de autenticação. Obrigatório quando auth_lambda_function_name está preenchido."
+  type        = string
+  default     = ""
+}

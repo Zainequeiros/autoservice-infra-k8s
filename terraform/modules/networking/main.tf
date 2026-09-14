@@ -197,3 +197,23 @@ resource "aws_security_group" "eks_nodes" {
     Environment = var.environment
   }
 }
+
+# Security group dedicado à Lambda de auth (mesmo VPC; liberar no RDS via allowed_security_group_ids).
+resource "aws_security_group" "lambda_auth" {
+  name        = "${var.project_name}-${var.environment}-lambda-auth-sg"
+  description = "Security group for the CPF auth Lambda (VPC access to RDS)."
+  vpc_id      = aws_vpc.main.id
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name        = "${var.project_name}-${var.environment}-lambda-auth-sg"
+    Project     = var.project_name
+    Environment = var.environment
+  }
+}

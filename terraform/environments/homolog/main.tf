@@ -49,4 +49,6 @@ module "apigateway" {
   public_subnet_ids                 = module.networking.public_subnet_ids
   ingress_security_group_id         = module.networking.alb_security_group_id
   node_group_autoscaling_group_name = module.eks.node_group_autoscaling_group_name
+  auth_lambda_function_name         = var.auth_lambda_function_name
+  auth_lambda_invoke_arn            = var.auth_lambda_invoke_arn
 }

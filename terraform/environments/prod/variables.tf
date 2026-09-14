@@ -69,3 +69,15 @@ variable "node_group_max_size" {
   type        = number
   default     = 4
 }
+
+variable "auth_lambda_function_name" {
+  description = "Lambda CPF auth function name (ex.: cpf-auth). Empty disables POST /auth/cpf on the API Gateway."
+  type        = string
+  default     = ""
+}
+
+variable "auth_lambda_invoke_arn" {
+  description = "Lambda invoke ARN for CPF auth. Fill after serverless deploy."
+  type        = string
+  default     = ""
+}
