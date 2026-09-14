@@ -13,3 +13,8 @@ output "api_gateway_url" {
 output "load_balancer_dns_name" {
   value = module.apigateway.load_balancer_dns_name
 }
+
+output "datadog_namespace" {
+  description = "Kubernetes namespace where the Datadog Agent is installed."
+  value       = try(module.datadog[0].namespace, null)
+}

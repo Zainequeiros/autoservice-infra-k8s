@@ -69,3 +69,22 @@ variable "node_group_max_size" {
   type        = number
   default     = 4
 }
+
+variable "enable_datadog_agent" {
+  description = "Install Datadog Agent via Helm in the EKS cluster."
+  type        = bool
+  default     = false
+}
+
+variable "dd_api_key" {
+  description = "Datadog API key for the Agent (required when enable_datadog_agent is true)."
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "dd_site" {
+  description = "Datadog site (datadoghq.com, datadoghq.eu, etc.)."
+  type        = string
+  default     = "datadoghq.com"
+}

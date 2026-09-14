@@ -10,3 +10,11 @@ node_group_instance_type    = "t3.medium"
 node_group_desired_capacity = 2
 node_group_min_size         = 1
 node_group_max_size         = 4
+
+# Datadog Agent no EKS (OBS-04)
+enable_datadog_agent = false
+dd_site              = "datadoghq.com"
+# dd_api_key — NÃO commite a key real. Use uma destas opções:
+#   - variável de ambiente: TF_VAR_dd_api_key
+#   - secret GitHub Actions: DD_API_KEY (workflow terraform.yml)
+# dd_api_key = "sua-api-key-datadog"
