@@ -1,5 +1,4 @@
 # Versionado — carregado automaticamente pelo Terraform (local e CI).
-# Altere para true quando prod estiver pronto para observabilidade.
 
-enable_datadog_agent = false
+enable_datadog_agent = true
 dd_site              = "datadoghq.com"
