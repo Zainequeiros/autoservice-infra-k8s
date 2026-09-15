@@ -73,7 +73,7 @@ Diagramas: [Miro — Autoservice](https://miro.com/app/board/uXjVHprBYf0=/).
 PNG com ícones oficiais AWS (frame no Miro / artefato na app):
 
 - [Miro — Arquitetura AWS](https://miro.com/app/board/uXjVHprBYf0=/?moveToWidget=3458764683739809878)
-- `autoservice/docs/observability/diagrams/autoservice-aws-architecture-corrigido.png`
+- PNG oficial: `autoservice/docs/observability/diagrams/autoservice-aws-architecture-corrigido.png`
 
 Frame K8s (Ingress → Service → Deployment → HPA): [Miro — Kubernetes](https://miro.com/app/board/uXjVHprBYf0=/).
 
