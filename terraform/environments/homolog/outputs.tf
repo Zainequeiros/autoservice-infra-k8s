@@ -25,3 +25,8 @@ output "eks_nodes_security_group_id" {
 output "lambda_auth_security_group_id" {
   value = module.networking.lambda_auth_security_group_id
 }
+
+output "datadog_namespace" {
+  description = "Kubernetes namespace where the Datadog Agent is installed."
+  value       = try(module.datadog[0].namespace, null)
+}

@@ -91,6 +91,8 @@ jobs:
             -backend-config="encrypt=true"
 
       - name: Terraform Plan
+        env:
+          TF_VAR_dd_api_key: ${{ secrets.DD_API_KEY }}
         run: terraform plan -lock=false -no-color -out=tfplan
 
   apply:
@@ -143,4 +145,6 @@ jobs:
 
       - name: Terraform Apply
         if: github.ref == matrix.branch
+        env:
+          TF_VAR_dd_api_key: ${{ secrets.DD_API_KEY }}
         run: terraform apply -auto-approve -lock=false
