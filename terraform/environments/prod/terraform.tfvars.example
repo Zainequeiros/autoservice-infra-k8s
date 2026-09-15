@@ -1,0 +1,24 @@
+project_name                = "autoservice"
+environment                 = "prod"
+aws_region                  = "us-east-1"
+cluster_version             = "1.29"
+vpc_cidr                    = "10.30.0.0/16"
+azs                         = ["us-east-1a", "us-east-1b"]
+public_subnet_cidrs         = ["10.30.1.0/24", "10.30.2.0/24"]
+private_subnet_cidrs        = ["10.30.11.0/24", "10.30.12.0/24"]
+node_group_instance_type    = "t3.medium"
+node_group_desired_capacity = 2
+node_group_min_size         = 1
+node_group_max_size         = 4
+
+# auth_lambda_function_name = "cpf-auth"
+# auth_lambda_invoke_arn     = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:ACCOUNT:function:cpf-auth/invocations"
+
+# Datadog Agent no EKS (OBS-04)
+# A flag enable_datadog_agent está em terraform.auto.tfvars (versionado, usado pelo CI).
+# Copie este arquivo para terraform.tfvars apenas se precisar de overrides locais (gitignored).
+#
+# dd_api_key — NÃO commite a key real. Use uma destas opções:
+#   - variável de ambiente: TF_VAR_dd_api_key
+#   - secret GitHub Actions: DD_API_KEY (workflow terraform.yml)
+# dd_api_key = "sua-api-key-datadog"

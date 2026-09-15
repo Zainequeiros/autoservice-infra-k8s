@@ -8,3 +8,9 @@ override.tf.json
 *_override.tf
 *_override.tf.json
 .terraform.lock.hcl
+backend.hcl
+*.tfvars
+!*.auto.tfvars
+*.tfplan
+tfplan
+crash.*.log
