@@ -70,6 +70,18 @@ variable "node_group_max_size" {
   default     = 4
 }
 
+variable "auth_lambda_function_name" {
+  description = "Lambda CPF auth function name (ex.: cpf-auth). Empty disables POST /auth/cpf on the API Gateway."
+  type        = string
+  default     = ""
+}
+
+variable "auth_lambda_invoke_arn" {
+  description = "Lambda invoke ARN for CPF auth. Fill after serverless deploy."
+  type        = string
+  default     = ""
+}
+
 variable "enable_datadog_agent" {
   description = "Install Datadog Agent via Helm in the EKS cluster."
   type        = bool

@@ -11,3 +11,6 @@ override.tf.json
 backend.hcl
 *.tfvars
 !*.auto.tfvars
+*.tfplan
+tfplan
+crash.*.log
