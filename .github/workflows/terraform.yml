@@ -13,7 +13,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: infra-k8s-${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.repository }}-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -25,29 +25,13 @@ env:
   AWS_REGION_DEFAULT: us-east-1
 
 jobs:
-  fmt:
-    name: Format
+  test:
+    name: Test
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ env.TERRAFORM_VERSION }}
-
-      - name: Terraform Format Check
-        run: terraform fmt -check -recursive
-
-  validate:
-    name: Validate (${{ matrix.environment }})
-    needs: fmt
     strategy:
       fail-fast: false
       matrix:
         environment: [homolog, prod]
-    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: terraform/environments/${{ matrix.environment }}
@@ -60,16 +44,20 @@ jobs:
         with:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
 
-      - name: Terraform Init
+      - name: Terraform fmt
+        working-directory: .
+        run: terraform fmt -check -recursive
+
+      - name: Terraform init
         run: terraform init -backend=false
 
-      - name: Terraform Validate
+      - name: Terraform validate
         run: terraform validate
 
   plan:
     name: Plan (${{ matrix.environment }})
     if: github.event_name == 'pull_request'
-    needs: validate
+    needs: test
     strategy:
       fail-fast: false
       matrix:
@@ -99,7 +87,7 @@ jobs:
         with:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
 
-      - name: Terraform Init
+      - name: Terraform init
         run: |
           terraform init \
             -backend-config="bucket=${TF_STATE_BUCKET}" \
@@ -108,24 +96,25 @@ jobs:
             -backend-config="dynamodb_table=${TF_STATE_LOCK_TABLE}" \
             -backend-config="encrypt=true"
 
-      - name: Terraform Plan
+      - name: Terraform plan
         env:
           TF_VAR_dd_api_key: ${{ secrets.DD_API_KEY }}
         run: terraform plan -lock=false -no-color -out=tfplan
 
-  apply-homolog:
-    name: Apply (homolog)
-    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
-    needs: validate
+  deploy:
+    name: Deploy (${{ github.ref_name == 'develop' && 'homolog' || 'prod' }})
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    needs: test
     runs-on: ubuntu-latest
-    environment: homolog
+    environment: ${{ github.ref_name == 'develop' && 'homolog' || 'prod' }}
     defaults:
       run:
-        working-directory: terraform/environments/homolog
+        working-directory: terraform/environments/${{ github.ref_name == 'develop' && 'homolog' || 'prod' }}
     env:
       AWS_REGION: ${{ secrets.AWS_REGION || 'us-east-1' }}
       TF_STATE_BUCKET: ${{ secrets.TERRAFORM_STATE_BUCKET }}
       TF_STATE_LOCK_TABLE: ${{ secrets.TERRAFORM_LOCK_TABLE }}
+      TF_ENV: ${{ github.ref_name == 'develop' && 'homolog' || 'prod' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -144,61 +133,16 @@ jobs:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
           terraform_wrapper: false
 
-      - name: Terraform Init
+      - name: Terraform init
         run: |
           terraform init \
             -backend-config="bucket=${TF_STATE_BUCKET}" \
-            -backend-config="key=autoservice-infra-k8s/homolog/terraform.tfstate" \
+            -backend-config="key=autoservice-infra-k8s/${TF_ENV}/terraform.tfstate" \
             -backend-config="region=${AWS_REGION}" \
             -backend-config="dynamodb_table=${TF_STATE_LOCK_TABLE}" \
             -backend-config="encrypt=true"
 
-      - name: Terraform Apply
-        env:
-          TF_VAR_dd_api_key: ${{ secrets.DD_API_KEY }}
-        run: terraform apply -auto-approve -lock=false
-
-  apply-prod:
-    name: Apply (prod)
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: validate
-    runs-on: ubuntu-latest
-    environment: prod
-    defaults:
-      run:
-        working-directory: terraform/environments/prod
-    env:
-      AWS_REGION: ${{ secrets.AWS_REGION || 'us-east-1' }}
-      TF_STATE_BUCKET: ${{ secrets.TERRAFORM_STATE_BUCKET }}
-      TF_STATE_LOCK_TABLE: ${{ secrets.TERRAFORM_LOCK_TABLE }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ env.TERRAFORM_VERSION }}
-          terraform_wrapper: false
-
-      - name: Terraform Init
-        run: |
-          terraform init \
-            -backend-config="bucket=${TF_STATE_BUCKET}" \
-            -backend-config="key=autoservice-infra-k8s/prod/terraform.tfstate" \
-            -backend-config="region=${AWS_REGION}" \
-            -backend-config="dynamodb_table=${TF_STATE_LOCK_TABLE}" \
-            -backend-config="encrypt=true"
-
-      - name: Terraform Apply
+      - name: Terraform apply
         env:
           TF_VAR_dd_api_key: ${{ secrets.DD_API_KEY }}
         run: terraform apply -auto-approve -lock=false
