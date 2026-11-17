@@ -1,0 +1,8 @@
+# Nao aplique este arquivo com kubectl apply -f (ConfigMaps ja existem).
+# Use os comandos do README — este arquivo e so referencia dos valores.
+#
+# DD_ENV=homolog
+# DD_TRACE_ENABLED=true
+# DD_LOGS_INJECTION=true
+# DD_METRICS_EXPORT=true
+# DD_SERVICE=autoservice-os | autoservice-billing | autoservice-execucao

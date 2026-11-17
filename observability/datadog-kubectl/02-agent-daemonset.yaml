@@ -1,0 +1,127 @@
+# Datadog Agent (sem Helm) — APM + DogStatsD + logs via arquivos do kubelet (EKS/containerd)
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: datadog-agent
+  namespace: datadog
+  labels:
+    app: datadog-agent
+spec:
+  selector:
+    matchLabels:
+      app: datadog-agent
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: datadog-agent
+      name: datadog-agent
+    spec:
+      serviceAccountName: datadog-agent
+      containers:
+        - name: agent
+          image: gcr.io/datadoghq/agent:7.57.1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8126
+              hostPort: 8126
+              name: traceport
+              protocol: TCP
+            - containerPort: 8125
+              hostPort: 8125
+              name: dogstatsdport
+              protocol: UDP
+          env:
+            - name: DD_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: datadog-secret
+                  key: api-key
+            - name: DD_SITE
+              value: datadoghq.com
+            - name: DD_CLUSTER_NAME
+              value: autoservice-homolog
+            - name: DD_ENV
+              value: homolog
+            - name: DD_TAGS
+              value: "env:homolog project:autoservice"
+            - name: DD_KUBELET_TLS_VERIFY
+              value: "false"
+            - name: DD_APM_ENABLED
+              value: "true"
+            - name: DD_APM_NON_LOCAL_TRAFFIC
+              value: "true"
+            - name: DD_DOGSTATSD_NON_LOCAL_TRAFFIC
+              value: "true"
+            # --- Logs (EKS / containerd) ---
+            - name: DD_LOGS_ENABLED
+              value: "true"
+            - name: DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL
+              value: "true"
+            - name: DD_LOGS_CONFIG_K8S_CONTAINER_USE_FILE
+              value: "true"
+            - name: DD_LOGS_CONFIG_AUTO_MULTI_LINE_DETECTION
+              value: "true"
+            - name: DD_CRI_SOCKET_PATH
+              value: /var/run/containerd/containerd.sock
+            - name: DD_CONTAINER_EXCLUDE
+              value: "name:datadog-agent"
+            - name: DD_HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: DD_KUBERNETES_KUBELET_HOST
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 512Mi
+          volumeMounts:
+            - name: procdir
+              mountPath: /host/proc
+              readOnly: true
+            - name: cgroups
+              mountPath: /host/sys/fs/cgroup
+              readOnly: true
+            - name: containerdsocket
+              mountPath: /var/run/containerd/containerd.sock
+              readOnly: true
+            - name: passwd
+              mountPath: /etc/passwd
+              readOnly: true
+            - name: logpodpath
+              mountPath: /var/log/pods
+              readOnly: true
+            - name: logcontainerspath
+              mountPath: /var/log/containers
+              readOnly: true
+            - name: pointerdir
+              mountPath: /opt/datadog-agent/run
+      volumes:
+        - name: procdir
+          hostPath:
+            path: /proc
+        - name: cgroups
+          hostPath:
+            path: /sys/fs/cgroup
+        - name: containerdsocket
+          hostPath:
+            path: /var/run/containerd/containerd.sock
+        - name: passwd
+          hostPath:
+            path: /etc/passwd
+        - name: logpodpath
+          hostPath:
+            path: /var/log/pods
+        - name: logcontainerspath
+          hostPath:
+            path: /var/log/containers
+        - name: pointerdir
+          emptyDir: {}
+      tolerations:
+        - operator: Exists
